@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Ficha de personagem interativa para RPG de mesa.">
+  <title>Ficha de Personagem</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="title">
+      <p class="eyebrow">Criação de Personagem</p>
+      <h1>Ficha de Personagem</h1>
+      <div class="rule" aria-hidden="true"><span></span></div>
+    </header>
+
+    <!-- MENU INICIAL -->
+    <section id="menuView" aria-labelledby="menu-title">
+      <div class="section-head">
+        <h2 id="menu-title" tabindex="-1">Seus Personagens</h2>
+        <div class="menu-actions">
+          <button type="button" class="reset" id="importBtn">Importar JSON</button>
+          <input type="file" id="importFile" accept="application/json,.json" multiple hidden>
+        </div>
+      </div>
+
+      <p class="warn" id="storageWarn" role="alert" hidden>
+        O navegador está bloqueando o armazenamento local. Os personagens só existirão enquanto esta aba estiver aberta:
+        use "Exportar" para guardar uma cópia.
+      </p>
+      <p class="menu-msg" id="menuMsg" role="status" aria-live="polite" hidden></p>
+
+      <ul class="char-list" id="charList"></ul>
+      <p class="empty-state" id="charEmpty" hidden>
+        Nenhum personagem salvo ainda. Crie o primeiro abaixo ou importe um arquivo JSON.
+      </p>
+
+      <div class="create-row">
+        <button type="button" class="create-btn" id="createChar">Criar Novo Personagem</button>
+      </div>
+    </section>
+
+    <!-- FICHA DO PERSONAGEM -->
+    <div id="sheetView" hidden>
+      <h2 class="sr-only" id="sheet-title" tabindex="-1">Ficha do personagem</h2>
+
+      <div class="toolbar">
+        <button type="button" class="reset" id="backToMenu">← Personagens</button>
+        <label class="name-field">
+          <span class="sr-only">Nome do personagem</span>
+          <input type="text" id="charName" maxlength="60" placeholder="Nome do personagem" autocomplete="off">
+        </label>
+        <div class="tool-actions">
+          <button type="button" class="primary-btn" id="saveNow">Salvar Personagem</button>
+          <button type="button" class="reset" id="exportChar">Exportar JSON</button>
+        </div>
+        <p class="save-status" id="saveStatus" role="status" aria-live="polite"></p>
+      </div>
+
+      <!-- ATRIBUTOS PRIMÁRIOS -->
+      <section class="section" aria-labelledby="attrs-title">
+        <div class="section-head">
+          <h2 id="attrs-title">Atributos Primários</h2>
+          <div class="points" id="points" aria-live="polite">
+            <span class="points-label">Pontos distribuídos</span>
+            <span class="points-value"><b id="pointsSpent">0</b></span>
+          </div>
+        </div>
+
+        <div class="attr-grid">
+          <article class="card attr themed t-corpo" data-attr="corpo">
+            <h3>Corpo</h3>
+            <div class="value" id="val-corpo">0</div>
+            <div class="controls">
+              <button type="button" class="step" data-attr="corpo" data-dir="-1" aria-label="Diminuir Corpo">−</button>
+              <button type="button" class="step" data-attr="corpo" data-dir="1" aria-label="Aumentar Corpo">+</button>
+            </div>
+          </article>
+
+          <article class="card attr themed t-mente" data-attr="mente">
+            <h3>Mente</h3>
+            <div class="value" id="val-mente">0</div>
+            <div class="controls">
+              <button type="button" class="step" data-attr="mente" data-dir="-1" aria-label="Diminuir Mente">−</button>
+              <button type="button" class="step" data-attr="mente" data-dir="1" aria-label="Aumentar Mente">+</button>
+            </div>
+          </article>
+
+          <article class="card attr themed t-persona" data-attr="persona">
+            <h3>Persona</h3>
+            <div class="value" id="val-persona">0</div>
+            <div class="controls">
+              <button type="button" class="step" data-attr="persona" data-dir="-1" aria-label="Diminuir Persona">−</button>
+              <button type="button" class="step" data-attr="persona" data-dir="1" aria-label="Aumentar Persona">+</button>
+            </div>
+          </article>
+
+          <article class="card attr themed t-espirito" data-attr="espirito">
+            <h3>Espírito</h3>
+            <div class="value" id="val-espirito">0</div>
+            <div class="controls">
+              <button type="button" class="step" data-attr="espirito" data-dir="-1" aria-label="Diminuir Espírito">−</button>
+              <button type="button" class="step" data-attr="espirito" data-dir="1" aria-label="Aumentar Espírito">+</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="attr-notice" id="attrNotice" aria-live="polite" hidden></div>
+
+        <div class="reset-row">
+          <button type="button" class="reset" id="reset">Redefinir atributos</button>
+        </div>
+      </section>
+
+      <!-- ESTATÍSTICAS DERIVADAS -->
+      <section class="section" aria-labelledby="derived-title">
+        <div class="section-head">
+          <h2 id="derived-title">Estatísticas Derivadas</h2>
+        </div>
+
+        <div class="derived-grid">
+          <article class="card stat">
+            <h3>Defesa</h3>
+            <div class="stat-value"><span id="out-defesa">2</span></div>
+            <p class="formula">2 + (Corpo × 1,5), arredondado para cima</p>
+          </article>
+
+          <article class="card stat">
+            <h3>Esquiva</h3>
+            <div class="stat-value"><span id="out-esquiva">2</span></div>
+            <p class="formula">2 + (Mente × 2), arredondado para cima</p>
+          </article>
+
+          <article class="card stat">
+            <h3>Pontos de Vida</h3>
+            <div class="stat-value"><span id="out-pv">14</span><small>PV</small></div>
+            <p class="formula">14 + (Corpo × 6)</p>
+          </article>
+
+          <article class="card stat">
+            <h3>Pontos de Ação</h3>
+            <div class="stat-value"><span id="out-pa">0</span><small>PA</small></div>
+            <p class="formula">Corpo × 12</p>
+          </article>
+
+          <article class="card stat">
+            <h3>Valor de Especialização</h3>
+            <div class="stat-value"><span id="out-ve">2</span><small>VE</small></div>
+            <p class="formula">2 + (Mente × 2)</p>
+          </article>
+
+          <article class="card stat">
+            <h3>Deslocamento</h3>
+            <div class="stat-value"><span id="out-desloc">5</span><small>m</small></div>
+            <p class="formula">5 + (Corpo × 1,5) metros</p>
+          </article>
+
+          <article class="card stat damage themed t-corpo" id="damageCard">
+            <h3>Dado de Dano</h3>
+            <div class="dmg-body">
+              <div class="stat-value"><span id="out-dano">1d4 + 0</span></div>
+              <button type="button" class="roll-btn" id="rollDamage">Rolar dano</button>
+            </div>
+            <p class="formula">Corpo 0–2: 1d4 + Corpo · Corpo 3–5: 2d4 + Corpo</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- PERÍCIAS -->
+      <section class="section" aria-labelledby="skills-title">
+        <div class="section-head">
+          <h2 id="skills-title">Perícias</h2>
+          <button type="button" class="reset" id="resetSkills">Redefinir perícias</button>
+        </div>
+        <div class="panels" id="skillPanels"></div>
+      </section>
+
+      <!-- ESPÍRITO -->
+      <section class="section" aria-labelledby="espirito-title">
+        <div class="section-head">
+          <h2 id="espirito-title">Espírito</h2>
+        </div>
+        <div id="espiritoRoot"></div>
+      </section>
+
+      <!-- ANOTAÇÕES -->
+      <section class="section" aria-labelledby="notes-title">
+        <div class="section-head">
+          <h2 id="notes-title">Anotações</h2>
+        </div>
+        <div class="notes-grid">
+          <label class="note">
+            <span class="note-title">Habilidades</span>
+            <span class="note-hint">Habilidades, técnicas, poderes e outras capacidades especiais do personagem.</span>
+            <textarea id="note-habilidades" rows="7" spellcheck="true"></textarea>
+          </label>
+          <label class="note">
+            <span class="note-title">Habilidades de Atributo</span>
+            <span class="note-hint">Habilidades e características especiais obtidas por meio dos atributos.</span>
+            <textarea id="note-atributo" rows="7" spellcheck="true"></textarea>
+          </label>
+          <label class="note">
+            <span class="note-title">Anotações pessoais</span>
+            <span class="note-hint">Lembretes, informações do personagem e qualquer outra coisa que você queira registrar.</span>
+            <textarea id="note-pessoais" rows="7" spellcheck="true"></textarea>
+          </label>
+        </div>
+      </section>
+
+      <!-- PERÍCIAS DE ATRIBUTO E DE MAESTRIA -->
+      <section class="section" aria-labelledby="hab-title">
+        <div class="section-head">
+          <h2 id="hab-title">Perícias de Atributo e de Maestria</h2>
+          <button type="button" class="reset" id="resetHabs">Redefinir habilidades</button>
+        </div>
+        <p class="hab-intro">
+          Cada Perícia de Atributo custa 2 Pontos de Perícia e cada Perícia de Maestria custa 3, sempre do pool do
+          atributo correspondente (o mesmo das Perícias). Toque em uma caixa para ler a descrição completa e os requisitos.
+        </p>
+        <div id="habRoot"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- CONFIRMAÇÃO -->
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h2 id="modalTitle"></h2>
+      <div id="modalBody"></div>
+      <label class="modal-input" id="modalInputWrap" hidden>
+        <span id="modalInputLabel"></span>
+        <input type="text" id="modalInput" autocomplete="off">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="reset" id="modalCancel">Cancelar</button>
+        <button type="button" class="danger-btn" id="modalOk">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="habilidades.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
